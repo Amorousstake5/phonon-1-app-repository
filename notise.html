@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrapbook Notebook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Anton:wght@400&family=Inter:wght@300;400;500;600&family=Comfortaa:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #f8f4e6;
+            --primary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --note-color: #fff9c4;
+            --todo-color: #e8f5e8;
+            --sticky-color: #ffeb9c;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --border-radius: 12px;
+        }
+
+        .theme-dark {
+            --bg-color: #1a1a2e;
+            --primary-color: #16213e;
+            --accent-color: #e74c3c;
+            --note-color: #16213e;
+            --todo-color: #0f3460;
+            --sticky-color: #e74c3c;
+        }
+
+        .theme-ocean {
+            --bg-color: #e6f3ff;
+            --primary-color: #0066cc;
+            --accent-color: #00a8ff;
+            --note-color: #cce7ff;
+            --todo-color: #b3d9ff;
+            --sticky-color: #80ccff;
+        }
+
+        .theme-forest {
+            --bg-color: #f0f8f0;
+            --primary-color: #2d5016;
+            --accent-color: #4caf50;
+            --note-color: #e8f5e8;
+            --todo-color: #c8e6c9;
+            --sticky-color: #a5d6a7;
+        }
+
+        .theme-sunset {
+            --bg-color: #fff8e1;
+            --primary-color: #ff6f00;
+            --accent-color: #ff8f00;
+            --note-color: #ffe0b2;
+            --todo-color: #ffcc02;
+            --sticky-color: #ffab00;
+        }
+
+        body {
+            background: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 200, 255, 0.1) 0%, transparent 50%);
+        }
+
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-family: 'Anton', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-family: 'Comfortaa', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .theme-selector {
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--accent-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            align-items: start;
+        }
+
+        .note-item, .todo-container, .sticky-note {
+            background: var(--note-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .note-item:hover, .todo-container:hover, .sticky-note:hover {
+            transform: translateY(-5px) rotate(0.5deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .note-item {
+            background: var(--note-color);
+        }
+
+        .todo-container {
+            background: var(--todo-color);
+        }
+
+        .sticky-note {
+            background: var(--sticky-color);
+            transform: rotate(-1deg);
+        }
+
+        .sticky-note:nth-child(even) {
+            transform: rotate(1deg);
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .note-title {
+            font-family: 'Comfortaa', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #ff3742;
+            transform: scale(1.1);
+        }
+
+        .note-content {
+            color: var(--primary-color);
+            line-height: 1.6;
+            margin-bottom: 15px;
+            word-wrap: break-word;
+        }
+
+        .note-media {
+            margin: 15px 0;
+        }
+
+        .note-media img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .note-media iframe {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .todo-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .todo-text {
+            flex: 1;
+            color: var(--primary-color);
+        }
+
+        .todo-text.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .form-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .form {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .form h2 {
+            font-family: 'Comfortaa', sans-serif;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--primary-color);
+            opacity: 0.6;
+        }
+
+        .empty-state h3 {
+            font-family: 'Comfortaa', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+
+        .tape {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            width: 40px;
+            height: 20px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 2px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tape::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 1px;
+            background: rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✨ Scrapbook Notebook ✨</h1>
+        <div class="controls">
+            <button class="btn" onclick="showNoteForm()">📝 Add Note</button>
+            <button class="btn" onclick="showTodoForm()">✅ Add Todo List</button>
+            <button class="btn" onclick="showStickyForm()">📄 Add Sticky Note</button>
+            <select class="btn theme-selector" onchange="changeTheme(this.value)">
+                <option value="default">Default Theme</option>
+                <option value="dark">Dark Mode</option>
+                <option value="ocean">Ocean Blue</option>
+                <option value="forest">Forest Green</option>
+                <option value="sunset">Sunset Orange</option>
+            </select>
+            <button class="btn" onclick="exportData()">📥 Export</button>
+            <button class="btn" onclick="importData()">📤 Import</button>
+        </div>
+    </div>
+
+    <div class="container" id="container">
+        <div class="empty-state">
+            <h3>Welcome to your Scrapbook!</h3>
+            <p>Start by adding some notes, todos, or sticky notes above ✨</p>
+        </div>
+    </div>
+
+    <!-- Note Form -->
+    <div class="form-container" id="noteForm">
+        <div class="form">
+            <button class="close-btn" onclick="hideForm('noteForm')">&times;</button>
+            <h2>📝 Create New Note</h2>
+            <div class="form-group">
+                <label>Title:</label>
+                <input type="text" id="noteTitle" placeholder="Enter note title...">
+            </div>
+            <div class="form-group">
+                <label>Content:</label>
+                <textarea id="noteContent" placeholder="Write your note here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Image URL (optional):</label>
+                <input type="url" id="noteImage" placeholder="https://example.com/image.jpg">
+            </div>
+            <div class="form-group">
+                <label>YouTube URL (optional):</label>
+                <input type="url" id="noteYoutube" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="addNote()">Add Note</button>
+                <button class="btn" onclick="hideForm('noteForm')" style="background: #95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Todo Form -->
+    <div class="form-container" id="todoForm">
+        <div class="form">
+            <button class="close-btn" onclick="hideForm('todoForm')">&times;</button>
+            <h2>✅ Create Todo List</h2>
+            <div class="form-group">
+                <label>List Title:</label>
+                <input type="text" id="todoTitle" placeholder="Enter list title...">
+            </div>
+            <div class="form-group">
+                <label>Tasks (one per line):</label>
+                <textarea id="todoTasks" placeholder="Task 1&#10;Task 2&#10;Task 3"></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="addTodoList()">Create List</button>
+                <button class="btn" onclick="hideForm('todoForm')" style="background: #95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Note Form -->
+    <div class="form-container" id="stickyForm">
+        <div class="form">
+            <button class="close-btn" onclick="hideForm('stickyForm')">&times;</button>
+            <h2>📄 Create Sticky Note</h2>
+            <div class="form-group">
+                <label>Note:</label>
+                <textarea id="stickyContent" placeholder="Quick note..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button class="btn" onclick="addStickyNote()">Add Sticky</button>
+                <button class="btn" onclick="hideForm('stickyForm')" style="background: #95a5a6;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
+
+    <script>
+        let notebooks = {
+            notes: [],
+            todos: [],
+            stickies: []
+        };
+
+        // Load data on page load
+        window.onload = function() {
+            loadData();
+            renderAll();
+        };
+
+        function loadData() {
+            const saved = localStorage.getItem('scrapbookData');
+            if (saved) {
+                notebooks = JSON.parse(saved);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('scrapbookData', JSON.stringify(notebooks));
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function showNoteForm() {
+            document.getElementById('noteForm').style.display = 'flex';
+        }
+
+        function showTodoForm() {
+            document.getElementById('todoForm').style.display = 'flex';
+        }
+
+        function showStickyForm() {
+            document.getElementById('stickyForm').style.display = 'flex';
+        }
+
+        function hideForm(formId) {
+            document.getElementById(formId).style.display = 'none';
+            clearForms();
+        }
+
+        function clearForms() {
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteContent').value = '';
+            document.getElementById('noteImage').value = '';
+            document.getElementById('noteYoutube').value = '';
+            document.getElementById('todoTitle').value = '';
+            document.getElementById('todoTasks').value = '';
+            document.getElementById('stickyContent').value = '';
+        }
+
+        function getYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function addNote() {
+            const title = document.getElementById('noteTitle').value.trim();
+            const content = document.getElementById('noteContent').value.trim();
+            const image = document.getElementById('noteImage').value.trim();
+            const youtube = document.getElementById('noteYoutube').value.trim();
+
+            if (!title && !content) {
+                alert('Please enter a title or content for your note!');
+                return;
+            }
+
+            const note = {
+                id: generateId(),
+                title: title || 'Untitled Note',
+                content: content,
+                image: image,
+                youtube: youtube,
+                timestamp: new Date().toISOString()
+            };
+
+            notebooks.notes.unshift(note);
+            saveData();
+            renderAll();
+            hideForm('noteForm');
+        }
+
+        function addTodoList() {
+            const title = document.getElementById('todoTitle').value.trim();
+            const tasksText = document.getElementById('todoTasks').value.trim();
+
+            if (!title || !tasksText) {
+                alert('Please enter a title and tasks for your todo list!');
+                return;
+            }
+
+            const tasks = tasksText.split('\n').filter(task => task.trim()).map(task => ({
+                id: generateId(),
+                text: task.trim(),
+                completed: false
+            }));
+
+            const todoList = {
+                id: generateId(),
+                title: title,
+                tasks: tasks,
+                timestamp: new Date().toISOString()
+            };
+
+            notebooks.todos.unshift(todoList);
+            saveData();
+            renderAll();
+            hideForm('todoForm');
+        }
+
+        function addStickyNote() {
+            const content = document.getElementById('stickyContent').value.trim();
+
+            if (!content) {
+                alert('Please enter some content for your sticky note!');
+                return;
+            }
+
+            const sticky = {
+                id: generateId(),
+                content: content,
+                timestamp: new Date().toISOString()
+            };
+
+            notebooks.stickies.unshift(sticky);
+            saveData();
+            renderAll();
+            hideForm('stickyForm');
+        }
+
+        function deleteItem(type, id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                notebooks[type] = notebooks[type].filter(item => item.id !== id);
+                saveData();
+                renderAll();
+            }
+        }
+
+        function toggleTodo(listId, taskId) {
+            const todoList = notebooks.todos.find(todo => todo.id === listId);
+            if (todoList) {
+                const task = todoList.tasks.find(task => task.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    saveData();
+                    renderAll();
+                }
+            }
+        }
+
+        function renderAll() {
+            const container = document.getElementById('container');
+            container.innerHTML = '';
+
+            const allItems = [
+                ...notebooks.notes.map(item => ({...item, type: 'note'})),
+                ...notebooks.todos.map(item => ({...item, type: 'todo'})),
+                ...notebooks.stickies.map(item => ({...item, type: 'sticky'}))
+            ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            if (allItems.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Welcome to your Scrapbook!</h3>
+                        <p>Start by adding some notes, todos, or sticky notes above ✨</p>
+                    </div>
+                `;
+                return;
+            }
+
+            allItems.forEach(item => {
+                if (item.type === 'note') {
+                    container.appendChild(createNoteElement(item));
+                } else if (item.type === 'todo') {
+                    container.appendChild(createTodoElement(item));
+                } else if (item.type === 'sticky') {
+                    container.appendChild(createStickyElement(item));
+                }
+            });
+        }
+
+        function createNoteElement(note) {
+            const div = document.createElement('div');
+            div.className = 'note-item';
+            
+            let mediaHtml = '';
+            if (note.image) {
+                mediaHtml += `<div class="note-media"><img src="${note.image}" alt="Note image" onerror="this.style.display='none'"></div>`;
+            }
+            if (note.youtube) {
+                const videoId = getYouTubeId(note.youtube);
+                if (videoId) {
+                    mediaHtml += `<div class="note-media"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>`;
+                }
+            }
+
+            div.innerHTML = `
+                <div class="tape"></div>
+                <div class="note-header">
+                    <div class="note-title">${note.title}</div>
+                    <button class="delete-btn" onclick="deleteItem('notes', '${note.id}')">&times;</button>
+                </div>
+                <div class="note-content">${note.content.replace(/\n/g, '<br>')}</div>
+                ${mediaHtml}
+                <div style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+                    ${new Date(note.timestamp).toLocaleString()}
+                </div>
+            `;
+            return div;
+        }
+
+        function createTodoElement(todo) {
+            const div = document.createElement('div');
+            div.className = 'todo-container';
+            
+            const tasksHtml = todo.tasks.map(task => `
+                <div class="todo-item">
+                    <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                           onchange="toggleTodo('${todo.id}', '${task.id}')">
+                    <span class="todo-text ${task.completed ? 'completed' : ''}">${task.text}</span>
+                </div>
+            `).join('');
+
+            div.innerHTML = `
+                <div class="tape"></div>
+                <div class="note-header">
+                    <div class="note-title">✅ ${todo.title}</div>
+                    <button class="delete-btn" onclick="deleteItem('todos', '${todo.id}')">&times;</button>
+                </div>
+                ${tasksHtml}
+                <div style="font-size: 0.8rem; color: #666; margin-top: 15px;">
+                    ${new Date(todo.timestamp).toLocaleString()}
+                </div>
+            `;
+            return div;
+        }
+
+        function createStickyElement(sticky) {
+            const div = document.createElement('div');
+            div.className = 'sticky-note';
+            
+            div.innerHTML = `
+                <div class="note-header">
+                    <div class="note-title">📄 Sticky Note</div>
+                    <button class="delete-btn" onclick="deleteItem('stickies', '${sticky.id}')">&times;</button>
+                </div>
+                <div class="note-content">${sticky.content.replace(/\n/g, '<br>')}</div>
+                <div style="font-size: 0.8rem; color: #666; margin-top: 10px;">
+                    ${new Date(sticky.timestamp).toLocaleString()}
+                </div>
+            `;
+            return div;
+        }
+
+        function changeTheme(theme) {
+            document.body.className = theme === 'default' ? '' : `theme-${theme}`;
+            localStorage.setItem('scrapbookTheme', theme);
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(notebooks, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'scrapbook-backup.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (confirm('This will replace all your current data. Are you sure?')) {
+                        notebooks = importedData;
+                        saveData();
+                        renderAll();
+                        alert('Data imported successfully!');
+                    }
+                } catch (error) {
+                    alert('Error importing data. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Load theme on page load
+        window.addEventListener('load', function() {
+            const savedTheme = localStorage.getItem('scrapbookTheme');
+            if (savedTheme) {
+                document.querySelector('.theme-selector').value = savedTheme;
+                changeTheme(savedTheme);
+            }
+        });
+
+        // Handle form submission with Enter key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const openForms = document.querySelectorAll('.form-container[style*="flex"]');
+                openForms.forEach(form => form.style.display = 'none');
+                clearForms();
+            }
+        });
+    </script>
+</body>
+</html>
